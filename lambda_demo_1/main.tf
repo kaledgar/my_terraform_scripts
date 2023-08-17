@@ -10,14 +10,14 @@ terraform {
 }
 
 provider "aws" {
-  region  = "eu-west-1"
+  region = var.region
 }
 ###############
-# Create iam role for lambda
+# Create role for lambda
 ################
 resource "aws_iam_role" "kkin_lambda_role" {
- name   = "terraform_aws_lambda_role"
- assume_role_policy = <<EOF
+  name               = "terraform_aws_lambda_role"
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -37,10 +37,10 @@ EOF
 # Create IAM policy for lambda
 ################
 resource "aws_iam_policy" "kkin_iam_lambda_policy" {
-  name = "kkinastowski_iam_policy_for_tf_lambda_role"
-  path = "/"
+  name        = "kkinastowski_iam_policy_for_tf_lambda_role"
+  path        = "/"
   description = "kkinastowski_iam_policy_for_tf_lambda_role"
-  policy = <<EOF
+  policy      = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -61,29 +61,29 @@ EOF
 # Attach policy to role
 ################
 resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
-  role        = aws_iam_role.kkin_lambda_role.name
-  policy_arn  = aws_iam_policy.kkin_iam_lambda_policy.arn
+  role       = aws_iam_role.kkin_lambda_role.name
+  policy_arn = aws_iam_policy.kkin_iam_lambda_policy.arn
 }
 ###############
 # Generate .zip
 ################
 data "archive_file" "zip_python_code" {
-  type = "zip"
-  source_dir = "${path.module}/python/"
+  type        = "zip"
+  source_dir  = "${path.module}/python/"
   output_path = "${path.module}/python/lambda-python.zip"
 }
 ###############
 # Create Lambda function
 ################
 resource "aws_lambda_function" "kkinastowski_tf_lambda" {
-  filename = "${path.module}/python/lambda-python.zip"
+  filename      = "${path.module}/python/lambda-python.zip"
   function_name = "kacper-kinastowski-demo-lambda-from-tf"
-  role = aws_iam_role.kkin_lambda_role.arn
-  handler = "lambda.lambda_handler"   # "python_filename.python_functionname"
-  runtime = "python3.9"
-  depends_on = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
+  role          = aws_iam_role.kkin_lambda_role.arn
+  handler       = "lambda.lambda_handler" # "python_filename.python_functionname"
+  runtime       = "python3.9"
+  depends_on    = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
   tags = {
-    Name = "kkinastowski-lambda-from-terraform-name-from-tag"
+    Name              = "kkinastowski-lambda-from-terraform-name-from-tag"
     "expiration_date" = "20-08-2023"
   }
 }
@@ -91,15 +91,15 @@ resource "aws_lambda_function" "kkinastowski_tf_lambda" {
 ## OUTPUTS
 
 output "teraform_aws_role_output" {
- value = aws_iam_role.kkin_lambda_role.name
+  value = aws_iam_role.kkin_lambda_role.name
 }
 
 output "teraform_aws_role_arn_output" {
- value = aws_iam_role.kkin_lambda_role.arn
+  value = aws_iam_role.kkin_lambda_role.arn
 }
 
 output "teraform_logging_arn_output" {
- value = aws_iam_policy.kkin_iam_lambda_policy.arn
+  value = aws_iam_policy.kkin_iam_lambda_policy.arn
 }
 
 
