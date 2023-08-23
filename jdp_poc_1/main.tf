@@ -1,17 +1,3 @@
-# prowider config
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.16"
-    }
-  }
-  required_version = ">= 1.2.0"
-}
-provider "aws" {
-  region = var.region
-}
-
 # Create role for glue to read
 resource "aws_iam_role" "terraform_aws_glue_role" {
   name               = "terraform_aws_glue_role"
@@ -35,13 +21,12 @@ EOF
 resource "aws_glue_catalog_database" "aws_glue_catalog_database" {
   name = "kkinastowski_glue_catalog_database"
 
-  location_uri = "s3://${aws_s3_bucket.s3_database_location.bucket}/${aws_s3_object.data_directory_object.key}"
+  location_uri = "s3://${aws_s3_bucket.s3_database_location.bucket}/${var.s3_folders[0]}"
   #location_uri = var.glue_db_catalog_location
   tags = {
     expiration_date = var.expiration_date_tag
   }
 }
-
 
 ## Source code example: https://registry.terraform.io/providers/figma/aws-4-49-0/latest/docs/resources/glue_catalog_table
 resource "aws_glue_catalog_table" "aws_glue_catalog_table_example" {
