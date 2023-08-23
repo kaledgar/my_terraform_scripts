@@ -12,16 +12,6 @@ provider "aws" {
   region = var.region
 }
 
-# Create S3 Resource for location of db
-resource "aws_s3_bucket" "s3_database_location" {
-  bucket = var.db_location_bucket_name
-  
-  tags = {
-    Name = var.db_location_bucket_name
-    expiration_date = var.expiration_date_tag
-  }
-}
-
 # Create role for glue to read
 resource "aws_iam_role" "terraform_aws_glue_role" {
   name               = "terraform_aws_glue_role"
@@ -41,25 +31,11 @@ resource "aws_iam_role" "terraform_aws_glue_role" {
 EOF
 }
 
-
-/*
-# TO DEPLOY ONE DAY
-# glue job
-resource "aws_glue_job" "glue-job-demo" {
-  name     = "glue-job-demo"
-  role_arn = aws_iam_role.terraform_aws_glue_role.arn
-  command {
-    script_location = "s3://${aws_s3_bucket.example.bucket}/example.py"
-  }
-}
-*/
-
-
 ## Create Glue Catalog Database
 resource "aws_glue_catalog_database" "aws_glue_catalog_database" {
   name = "kkinastowski_glue_catalog_database"
 
-  location_uri = "s3://${var.db_location_bucket_name}"
+  location_uri = "s3://${aws_s3_bucket.s3_database_location.bucket}/${aws_s3_object.data_directory_object.key}"
   #location_uri = var.glue_db_catalog_location
   tags = {
     expiration_date = var.expiration_date_tag
@@ -136,30 +112,14 @@ resource "aws_glue_catalog_table" "aws_glue_catalog_table_target" {
 }
 
 
-
 /*
-###############
-# Create S3 Resource
-################
-resource "aws_s3_bucket" "bucket1" {
-  bucket = var.bucket_name
-  
-  tags = {
-    Name = var.bucket_name
-    Environment = "Dev"
-    expiration_date = "25-08-2023"
-  }
-}
-###############
-# Create ec2 and upload app1-install.sh
-################
-resource "aws_instance" "kkinastowski-demo-from-tf" {
-  ami = "ami-0ed752ea0f62749af"
-  instance_type = "t2.micro"
-  user_data = file("${path.module}/app1-install.sh")
-  tags = {
-    "expiration_date" = "25-08-2023"
-    "author" = "Kacper K"
+# TO DEPLOY ONE DAY
+# glue job
+resource "aws_glue_job" "glue-job-demo" {
+  name     = "glue-job-demo"
+  role_arn = aws_iam_role.terraform_aws_glue_role.arn
+  command {
+    script_location = "s3://${aws_s3_bucket.example.bucket}/example.py"
   }
 }
 */
